@@ -10,25 +10,25 @@ The following examples are given as to understand how you should call the functi
 
 1. to use HttpGET:
    1.1 Without Authorization token: (usually public endpoint)
-     String tinkProvidersUrl = 'https://api.tink.se/api/v1/providers/GB'
-     HttpExternal.sendGetWithAuthToken(tinkProvidersUrl, null, null)
+     String tinkProvidersUrl = 'https://api.tink.se/api/v1/providers/GB';
+     HttpExternal.sendGetWithAuthToken(tinkProvidersUrl, null, null);
    1.2 With Authorization token: (usually protected endpoint)
-     String tinkAccountsUrl = 'https://api.tink.com/api/v1/accounts/list'
-     String accessToken = 'yourStringToken'
-     String authType = "Bearer"  // it can be Bearer or Basic
-     HttpExternal.sendGetWithAuthToken(tinkAccountsUrl, accessToken, authType)
+     String tinkAccountsUrl = 'https://api.tink.com/api/v1/accounts/list';
+     String accessToken = 'yourStringToken';
+     String authType = "Bearer";  // it can be Bearer or Basic
+     HttpExternal.sendGetWithAuthToken(tinkAccountsUrl, accessToken, authType);
      
 2. to use HttpPOST:
    2.1 type -> URLformEncoded
-      String tinkAuthenticationUrl= 'https://api.tink.com/api/v1/oauth/token'
+      String tinkAuthenticationUrl= 'https://api.tink.com/api/v1/oauth/token';
       String urlParameters = "client_id=${yourClientID}" +
                                 "&client_secret=${yourClientSecret}" +
                                 "&grant_type=authorization_code" +
-                                "&code=${theAuthCode}"
+                                "&code=${theAuthCode}";
       HttpExternal.sendPostURLformEncoded(tinkAuthenticationUrl, urlParameters)
       
    2.2 type -> JSON body
-        def tinkAccId = 'someBankAccountId'
+        def tinkAccId = 'someBankAccountId';
         JSONObject searchFilter = new JSONObject()
         JSONArray jsonAccountsArray = new JSONArray()
         jsonAccountsArray.put(tinkAccId)
@@ -41,11 +41,11 @@ The following examples are given as to understand how you should call the functi
         } catch (JSONException e) {
             e.printStackTrace()
         }
-       String tinkFilterTransactionUrl = 'https://api.tink.com/api/v1/search'
-       String jsonBody = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(searchFilter))
-       String authType = "Bearer"  // it can be Bearer or Basic
-       String accessToken = 'yourStringToken'
-       HttpExternal.sendPostJSON(tinkFilterTransactionUrl, accessToken, jsonBody, authType)
+       String tinkFilterTransactionUrl = 'https://api.tink.com/api/v1/search';
+       String jsonBody = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(searchFilter));
+       String authType = "Bearer";  // it can be Bearer or Basic
+       String accessToken = 'yourStringToken';
+       HttpExternal.sendPostJSON(tinkFilterTransactionUrl, accessToken, jsonBody, authType);
    
    
  Succesful Response: 
