@@ -6,6 +6,6 @@ These included GET and POST functions perform really fast with proper checked ex
 I was using external bank api called TINK! [Here I am not sharing the real clientIDs, clientSecrets and authCodes for privacy]
 You can just pass the parameters on your own as required by your program!
 
-The CODE documentation is here https://github.com/ani0904071/HTTP_External_groovy/wiki/Code-Documenatation.
+The CODE documentation is here https://github.com/ani0904071/HTTP_External_groovy/wiki/Code-Documentation.
 
   
