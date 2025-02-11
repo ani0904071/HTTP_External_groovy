@@ -15,7 +15,7 @@ class HttpExternal {
         return jsonResponse
     }
 
-    static sendPostURLformEncoded(String requestUrl, String urlParameters, String authorizationToken) {
+    static sendFormEncodedPostRequest(String requestUrl, String urlParameters, String authorizationToken) {
 
         def jsonResponse
         InputStream ins = null
@@ -83,7 +83,7 @@ class HttpExternal {
         return httpResponseBody
     }
 
-    static sendPostJSON(String requestUrl, String authorizationToken, String jsonInputString) {
+    static sendJsonPostRequest(String requestUrl, String authorizationToken, String jsonInputString) {
 
         def jsonResponse
         InputStream ins
@@ -156,7 +156,7 @@ class HttpExternal {
         return httpResponseBody
     }
 
-    static sendGetWithAuthToken(String getUrl, String authorizationToken) {
+    static sendGetRequest(String getUrl, String authorizationToken) {
 
         def jsonResponse
         InputStream ins = null
