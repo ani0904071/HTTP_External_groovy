@@ -1,10 +1,13 @@
-package com.bv.util
-
+import grails.io.IOUtils
 import groovy.json.JsonSlurper
+
 import java.nio.charset.StandardCharsets
 
 class HttpExternal {
 
+    public static String allowedTlsVersions = "TLSv1,TLSv1.1,TLSv1.2"
+
+    // this function should be in a UTIL file
     static convertStringToJSON(String response) {
         def parser = new JsonSlurper()
         def jsonResponse = parser.parseText(response)
@@ -12,7 +15,7 @@ class HttpExternal {
         return jsonResponse
     }
 
-    static sendFormEncodedPostRequest(String requestUrl, String urlParameters) {
+    static sendPostURLformEncoded(String requestUrl, String urlParameters, String authorizationToken) {
 
         def jsonResponse
         InputStream ins = null
@@ -24,12 +27,14 @@ class HttpExternal {
         URL url = new URL(requestUrl)
 
         try {
-            System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2")
+            System.setProperty("https.protocols", allowedTlsVersions)
             conn = (HttpURLConnection) url.openConnection()
             conn.setDoOutput(true)
             conn.setInstanceFollowRedirects(false)
             conn.setRequestMethod("POST")
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+            if(authorizationToken)
+                conn.setRequestProperty("Authorization", "Bearer " + authorizationToken)
             conn.setRequestProperty("charset", "utf-8")
             conn.setRequestProperty("Content-Length", Integer.toString(postDataLength))
             conn.setUseCaches(false)
@@ -54,7 +59,7 @@ class HttpExternal {
 
             try {
                 ins = new BufferedInputStream(conn.getInputStream())
-                String result = org.apache.commons.io.IOUtils.toString(ins, "UTF-8")
+                String result = IOUtils.toString(ins, "UTF-8")
                 jsonResponse = convertStringToJSON(result.toString())
                 httpResponseBody['responseData'] = jsonResponse
                 httpResponseBody['responseMessage'] = 'ok'
@@ -78,7 +83,7 @@ class HttpExternal {
         return httpResponseBody
     }
 
-    static sendJsonPostRequest(String requestUrl, String authorizationToken, String jsonInputString, String authType) {
+    static sendPostJSON(String requestUrl, String authorizationToken, String jsonInputString) {
 
         def jsonResponse
         InputStream ins
@@ -86,13 +91,14 @@ class HttpExternal {
         Map httpResponseBody = [responseCode: 400,  responseData: null, responseMessage: '']
 
         try {
-            System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2")
+            System.setProperty("https.protocols", allowedTlsVersions)
             URL url = new URL(requestUrl)
             conn = (HttpURLConnection) url.openConnection()
             conn.setConnectTimeout(5000)
             conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+            conn.setRequestProperty("Accept", "application/json")
             if(authorizationToken)
-                conn.setRequestProperty("Authorization", authType + " " + authorizationToken)
+                conn.setRequestProperty("Authorization", "Bearer " + authorizationToken)
             conn.setDoOutput(true)
             //conn.setDoInput(true)
             conn.setRequestMethod("POST")
@@ -114,21 +120,26 @@ class HttpExternal {
             httpResponseBody['responseCode'] = responseCode
 
             // read the response
-            try {
-                ins = new BufferedInputStream(conn.getInputStream())
-                String result = org.apache.commons.io.IOUtils.toString(ins, "UTF-8")
-                jsonResponse = convertStringToJSON(result)
-                httpResponseBody['responseData'] = jsonResponse
-                httpResponseBody['responseMessage'] = 'ok'
-            } catch (IOException io) {
-                println(io.toString())
-                httpResponseBody['responseMessage'] = io.toString()
-            } catch (Exception e) {
-                println(e.toString())
-                httpResponseBody['responseMessage'] = e.toString()
-            } finally {
-                if(ins)
-                    ins.close()
+            if (responseCode != 204) {
+                try {
+                    conn.getResponseCode().toString()
+                    ins = new BufferedInputStream(conn.getInputStream())
+                    String result = IOUtils.toString(ins, "UTF-8")
+                    jsonResponse = convertStringToJSON(result)
+                    httpResponseBody['responseData'] = jsonResponse
+                    httpResponseBody['responseMessage'] = HttpURLConnection.HTTP_OK
+                } catch (IOException io) {
+                    println(io.toString())
+                    httpResponseBody['responseMessage'] = io.toString()
+                } catch (Exception e) {
+                    println(e.toString())
+                    httpResponseBody['responseMessage'] = e.toString()
+                } finally {
+                    if(ins)
+                        ins.close()
+                }
+            } else  if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+                httpResponseBody['responseMessage'] = "Empty Body"
             }
 
         } catch(Exception e) {
@@ -138,14 +149,14 @@ class HttpExternal {
             if (conn != null) {
                 try {
                     conn.disconnect()
-                } catch (Exception e) { /* ignored */}
+                } catch (Exception e) { / ignored /}
             }
         }
 
         return httpResponseBody
     }
 
-    static sendAuthenticatedGetRequest(String getUrl, String authorizationToken, String authType) {
+    static sendGetWithAuthToken(String getUrl, String authorizationToken) {
 
         def jsonResponse
         InputStream ins = null
@@ -153,12 +164,13 @@ class HttpExternal {
         Map httpResponseBody = [responseCode: 400,  responseData: null, responseMessage: '']
 
         try {
-            System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2")
+            System.setProperty("https.protocols", allowedTlsVersions)
             URL obj = new URL(getUrl)
             conn = (HttpURLConnection) obj.openConnection()
             conn.setRequestMethod("GET")
+            conn.setRequestProperty("Accept", "application/json")
             if(authorizationToken)
-                conn.setRequestProperty("Authorization", authType + " " + authorizationToken)
+                conn.setRequestProperty("Authorization", "Bearer " + authorizationToken)
 
             int responseCode = conn.getResponseCode()
             System.out.println("GET Response Code :: " + responseCode)
@@ -166,10 +178,10 @@ class HttpExternal {
 
             try {
                 ins = new BufferedInputStream(conn.getInputStream())
-                String result = org.apache.commons.io.IOUtils.toString(ins, "UTF-8")
+                String result =  IOUtils.toString(ins, "UTF-8")
                 jsonResponse = convertStringToJSON(result.toString())
                 httpResponseBody['responseData'] = jsonResponse
-                httpResponseBody['responseMessage'] = 'ok'
+                httpResponseBody['responseMessage'] = HttpURLConnection.HTTP_OK
             } catch (IOException io) {
                 jsonResponse = io.toString()
                 println(io.toString())
